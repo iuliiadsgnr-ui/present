@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>С ДНЁМ РОЖДЕНИЯ, МАМУЛЯ 🎁</title>
+  
+  <!-- Шрифты Google Fonts: Prata, Cormorant Garamond, Space Mono, Manrope -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Manrope:wght@300;400;500;600&family=Prata&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --bg-paper: #FAF7F2;
+      --bg-card: #FFFFFF;
+      /* Благородная теплая кофейно-шоколадная палитра */
+      --ink-primary: #2C1D18;       /* Глубокий эспрессо / темный шоколад */
+      --ink-secondary: #4A352D;     /* Теплый мокко */
+      --ink-muted: #846D63;         /* Мягкий какао */
+      --border-line: #2C1D18;       /* Темно-коричневые акцентные линии */
+      --accent-caramel: #B87A5E;    /* Терракота / карамель */
+      --accent-cream: #F3ECE2;      /* Теплый кремовый */
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      background-color: var(--bg-paper);
+      color: var(--ink-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-image: radial-gradient(rgba(44, 29, 24, 0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Холст для плавающих лепестков */
+    #petals-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Шрифтовые стили по референсу */
+    .font-editorial-heading {
+      font-family: 'Prata', serif;
+      letter-spacing: -0.01em;
+      color: var(--ink-primary);
+    }
+
+    .font-editorial-italic {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+    }
+
+    .font-mono-meta {
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.18em;
+    }
+
+    /* Полупрозрачная текстовая текстура на фоне */
+    .watermark-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3.5rem, 10vw, 6.2rem);
+      line-height: 1.1;
+      opacity: 0.038;
+      pointer-events: none;
+      user-select: none;
+      text-align: center;
+      width: 120%;
+      font-style: italic;
+      color: var(--ink-primary);
+      z-index: 0;
+    }
+
+    /* Кнопка в темно-коричневом глубоком исполнении */
+    .btn-editorial {
+      background: var(--ink-primary);
+      color: #FAF7F2;
+      border: 1px solid var(--ink-primary);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-editorial::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 245, 235, 0.18), transparent);
+      transition: 0.5s;
+    }
+
+    .btn-editorial:hover::before {
+      left: 100%;
+    }
+
+    .btn-editorial:hover {
+      background: #3E2922;
+      border-color: #3E2922;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -6px rgba(44, 29, 24, 0.28);
+    }
+
+    .btn-editorial:active {
+      transform: translateY(0);
+    }
+
+    /* Модальный оверлей со скроллом для длинных экранов */
+    #cert-modal {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Карточка модального сертификата */
+    .certificate-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(44, 29, 24, 0.16);
+      box-shadow: 0 28px 60px -15px rgba(44, 29, 24, 0.18);
+      margin: auto;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-center items-center py-10 px-4 sm:px-8 selection:bg-[#4A352D] selection:text-[#FAF7F2]">
+
+  <!-- Холст с деликатными парящими лепестками -->
+  <canvas id="petals-canvas"></canvas>
+
+  <!-- ================= ЦЕНТРАЛЬНЫЙ БЛОК ОТКРЫТКИ ================= -->
+  <main class="max-w-xl w-full mx-auto my-auto relative z-10">
+    
+    <!-- Фоновый водяной знак -->
+    <div class="watermark-text">
+      beauty & eyeliner art • special day • flowers for you • with love
+    </div>
+
+    <div class="relative z-10 flex flex-col items-center text-center px-2">
+      
+      <!-- Подарочный бейдж -->
+      <div class="text-3xl sm:text-4xl mb-4 animate-bounce transition-transform duration-700">
+        🎁
+      </div>
+
+      <!-- ГЛАВНАЯ ШРИФТОВАЯ ПАРА ПО РЕФЕРЕНСУ (ТЕМНО-КОРИЧНЕВЫЙ) -->
+      <div class="mb-10 w-full">
+        <h1 class="font-editorial-heading text-3xl sm:text-5xl leading-tight uppercase font-normal tracking-wide text-[#2C1D18]">
+          Мамуля, привет
+        </h1>
+        <div class="font-editorial-italic text-3xl sm:text-5xl text-[#3E2922] font-bold -mt-1 sm:-mt-2 lowercase">
+          немного заранее тебя поздравляю
+        </div>
+      </div>
+
+      <!-- Разделитель -->
+      <div class="w-16 h-[1.5px] bg-[#2C1D18] opacity-25 mb-8"></div>
+
+      <!-- ОСНОВНОЙ ТЕКСТ ПОЗДРАВЛЕНИЯ -->
+      <div class="space-y-6 font-light text-base sm:text-lg leading-relaxed max-w-md text-center text-[#4A352D]">
+        
+        <p class="font-normal text-[#38241D]">
+          За то завтра проснешься и цветочки уже будут радовать! 💐 
+          <span class="block mt-1 font-editorial-italic font-bold text-xl sm:text-2xl text-[#2C1D18]">
+            Я тебя очень люблю и крепко-крепко обнимаю!
+          </span>
+        </p>
+
+        <p class="text-sm sm:text-base text-[#4A352D] leading-normal">
+          Мне пришла в голову такая интересная идея подарка. Потому что не могу оставить просто так, что ты еще 
+          <span class="underline decoration-1 underline-offset-4 font-medium text-[#2C1D18]">не научилась рисовать себе стрелки!</span>
+        </p>
+
+        <p class="text-sm sm:text-base text-[#4A352D]">
+          Поэтому забирай мой подарочек! Подробнее расскажу уже по телефону когда проснусь))))
+        </p>
+
+        <!-- Финальная часть -->
+        <div class="pt-2">
+          <p class="font-editorial-italic text-2xl sm:text-3xl text-[#2C1D18] font-bold">
+            С наступающим днем рождения, мамуличка-лапуличка!
+          </p>
+        </div>
+      </div>
+
+      <!-- КНОПКА ПОЛУЧЕНИЯ ПОДАРКА (С ЭМОДЗИ) -->
+      <div class="mt-10 w-full max-w-sm">
+        <button 
+          id="reveal-btn"
+          onclick="openCertificateModal()"
+          class="btn-editorial w-full py-4 px-6 rounded-none flex items-center justify-between group cursor-pointer shadow-sm"
+        >
+          <span class="font-mono-meta text-xs uppercase tracking-[0.2em] flex items-center gap-2">
+            <span class="text-base">🎁</span> ПОЛУЧИТЬ ПОДАРОК
+          </span>
+          <span class="text-base transform group-hover:translate-x-1.5 transition-transform duration-300">→</span>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= МОДАЛЬНОЕ ОКНО: СЕРТИФИКАТ (С ПОЛНОЙ ПРОКРУТКОЙ) ================= -->
+  <div 
+    id="cert-modal" 
+    class="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 bg-[#1B110D]/75 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div 
+      id="cert-dialog" 
+      class="certificate-card w-full max-w-md rounded-none p-6 sm:p-8 transform scale-95 opacity-0 transition-all duration-300 flex flex-col relative my-auto"
+    >
+      <!-- Закрыть крестиком -->
+      <button 
+        onclick="closeCertificateModal()" 
+        class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-[#846D63] hover:text-[#2C1D18] font-mono text-sm transition-colors cursor-pointer"
+        title="Закрыть"
+      >
+        [✕]
+      </button>
+
+      <!-- Шапка сертификата -->
+      <div class="font-mono-meta text-[10px] text-[#846D63] tracking-[0.25em] uppercase mb-4">
+        GIFT VOUCHER № 2026-MOM
+      </div>
+
+      <div class="border-t border-[#2C1D18]/15 pt-3 pb-1 flex justify-between items-baseline font-mono-meta text-[10px] text-[#4A352D] mb-6">
+        <span>TYPE: MASTERCLASS</span>
+      </div>
+
+      <!-- Тело сертификата -->
+      <div class="text-center my-2">
+        <span class="font-editorial-italic text-lg text-[#846D63] block mb-1">
+          Сертификат на урок
+        </span>
+        <h2 class="font-editorial-heading text-2xl sm:text-3xl uppercase tracking-tight text-[#2C1D18] mb-3">
+          Макияж для себя
+        </h2>
+
+        <!-- Детализация -->
+        <div class="border border-[#E4D8CD] bg-[#FAF7F2] p-4 text-left font-mono-meta text-xs space-y-2 text-[#4A352D] mb-6">
+          <div class="flex justify-between border-b border-[#E4D8CD] pb-1">
+            <span class="text-[#846D63]">ПОЛУЧАТЕЛЬ:</span>
+            <span class="text-[#2C1D18] font-bold">ЛЮБИМАЯ МАМУЛЯ</span>
+          </div>
+        </div>
+
+        <!-- Изображение сертификата -->
+        <img 
+          src="27F7CE0C-9162-48C4-95C4-F35C98CF781D.JPG" 
+          alt="Сертификат" 
+          class="w-full border border-[#2C1D18] mb-4 shadow-sm object-contain"
+        >
+
+        <p class="text-xs text-[#846D63] italic font-light mb-6">
+          * Все детали расскажу позже
+        </p>
+      </div>
+
+      <!-- Кнопки действий сертификата -->
+      <div class="space-y-2">
+        <button 
+          onclick="handleSaveCertificate()"
+          class="btn-editorial w-full py-3 px-4 font-mono-meta text-xs uppercase text-center block tracking-[0.2em] cursor-pointer"
+        >
+          СОХРАНИТЬ СЕРТИФИКАТ
+        </button>
+
+        <button 
+          onclick="closeCertificateModal()" 
+          class="w-full py-2.5 font-mono-meta text-[11px] text-[#846D63] hover:text-[#2C1D18] uppercase tracking-widest transition-colors text-center cursor-pointer"
+        >
+          ВЕРНУТЬСЯ К ПОЗДРАВЛЕНИЮ
+        </button>
+      </div>
+
+      <div class="border-b border-[#2C1D18]/15 mt-6 pt-1"></div>
+    </div>
+  </div>
+
+  <!-- Всплывающее уведомление при сохранении -->
+  <div 
+    id="toast-box" 
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#2C1D18] text-[#FAF7F2] font-mono-meta text-[11px] py-3 px-6 shadow-2xl tracking-[0.15em] uppercase border border-[#4A352D] opacity-0 pointer-events-none transition-all duration-300 transform translate-y-4 text-center max-w-[90vw]"
+  >
+    СЕРТИФИКАТ АКТИВИРОВАН С ЛЮБОВЬЮ ♡
+  </div>
+
+  <script>
+    // --- ПЛАВАЮЩИЕ ЛЕПЕСТКИ ЦВЕТОВ НА ХОЛСТЕ ---
+    const canvas = document.getElementById('petals-canvas');
+    const ctx = canvas.getContext('2d');
+    let petals = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Petal {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * -canvas.height;
+        this.size = Math.random() * 8 + 6;
+        this.speedY = Math.random() * 0.8 + 0.4;
+        this.speedX = Math.random() * 0.6 - 0.3;
+        this.angle = Math.random() * 360;
+        this.angleSpeed = Math.random() * 1.5 - 0.75;
+        this.opacity = Math.random() * 0.35 + 0.15;
+        const hues = ['#D99B82', '#E8C5B8', '#C48A75', '#EFE0D5'];
+        this.color = hues[Math.floor(Math.random() * hues.length)];
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += Math.sin(this.y * 0.005) * 0.8 + this.speedX;
+        this.angle += this.angleSpeed;
+        if (this.y > canvas.height + 20) {
+          this.reset();
+          this.y = -20;
+        }
+      }
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate((this.angle * Math.PI) / 180);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.opacity;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.size, this.size * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < 22; i++) {
+      petals.push(new Petal());
+    }
+
+    function animatePetals() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      petals.forEach(petal => {
+        petal.update();
+        petal.draw();
+      });
+      requestAnimationFrame(animatePetals);
+    }
+    requestAnimationFrame(animatePetals);
+
+    // --- МОДАЛЬНОЕ ОКНО И ТЕПЛОЕ КОНФЕТТИ ---
+    function openCertificateModal() {
+      triggerWarmConfetti();
+
+      const modal = document.getElementById('cert-modal');
+      const dialog = document.getElementById('cert-dialog');
+
+      modal.classList.remove('pointer-events-none', 'opacity-0');
+      modal.classList.add('opacity-100');
+
+      setTimeout(() => {
+        dialog.classList.remove('scale-95', 'opacity-0');
+        dialog.classList.add('scale-100', 'opacity-100');
+      }, 50);
+    }
+
+    function closeCertificateModal() {
+      const modal = document.getElementById('cert-modal');
+      const dialog = document.getElementById('cert-dialog');
+
+      dialog.classList.remove('scale-100', 'opacity-100');
+      dialog.classList.add('scale-95', 'opacity-0');
+
+      setTimeout(() => {
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+      }, 200);
+    }
+
+    // Теплое праздничное конфетти: шоколад, терракота, золото, крем
+    function triggerWarmConfetti() {
+      const colors = ['#2C1D18', '#B87A5E', '#E8C5B8', '#D4AF37', '#FAF7F2'];
+      
+      confetti({
+        particleCount: 55,
+        spread: 75,
+        origin: { y: 0.62 },
+        colors: colors,
+        disableForReducedMotion: true
+      });
+
+      setTimeout(() => {
+        confetti({
+          particleCount: 35,
+          angle: 60,
+          spread: 60,
+          origin: { x: 0.1, y: 0.7 },
+          colors: colors
+        });
+        confetti({
+          particleCount: 35,
+          angle: 120,
+          spread: 60,
+          origin: { x: 0.9, y: 0.7 },
+          colors: colors
+        });
+      }, 180);
+    }
+
+    function handleSaveCertificate() {
+      const toast = document.getElementById('toast-box');
+      toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+      }, 3500);
+    }
+
+    document.getElementById('cert-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeCertificateModal();
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeCertificateModal();
+      }
+    });
+  </script>
+</body>
+</html>
